@@ -1,2 +1,0 @@
-# smart_food_rescue_managenent
-smart_food_rescue_managenent

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <h2>Select Your Role to Continue</h2>
+    <div class="role-grid">
+        <a href="{{ url_for('login', role='donor') }}" class="role-card">
+            <i class="fa-solid fa-utensils"></i>
+            <h3>Donor</h3>
+            <p>Donate surplus food & track status</p>
+        </a>
+        <a href="{{ url_for('login', role='trust') }}" class="role-card">
+            <i class="fa-solid fa-hand-holding-heart"></i>
+            <h3>Charitable Trust</h3>
+            <p>Pickup & delivery for help communities</p>
+        </a>
+        <a href="{{ url_for('login', role='volunteer') }}" class="role-card">
+            <i class="fa-solid fa-truck-fast"></i>
+            <h3>Volunteer</h3>
+            <p>Pickup & delivery transport</p>
+        </a>
+        <a href="{{ url_for('login', role='recycling') }}" class="role-card">
+            <i class="fa-solid fa-recycle"></i>
+            <h3>Recycling Plant</h3>
+            <p>Manage waste & produce organic fertilizer</p>
+        </a>
+        <a href="{{ url_for('login', role='buyer') }}" class="role-card">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <h3>Buyer</h3>
+            <p>Buy organic fertilizer products</p>
+        </a>
+        <a href="{{ url_for('login', role='admin') }}" class="role-card">
+            <i class="fa-solid fa-gauge"></i>
+            <h3>Admin</h3>
+            <p>Manage all modules and users</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Smart Food Rescue and Waste Management System</h1>
+        <p>Connecting food donors, charitable trusts, volunteers, recycling plants and buyers to reduce food waste and build a greener future.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('select_role') }}" class="btn btn-success btn-lg">Get Started</a>
+            <a href="{{ url_for('marketplace') }}" class="btn btn-outline-success btn-lg">Browse Green Market</a>
+        </div>
+    </div>
+    <div class="hero-stats-grid">
+        <div class="stat-card">
+            <h3>{{ donations_count }}+</h3>
+            <p>Food Donations</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ trusts_count }}+</h3>
+            <p>People Fed</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ recycling_count }}+</h3>
+            <p>Recycling Batches</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ orders_count }}+</h3>
+            <p>Partner Orders</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

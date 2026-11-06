@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Green Marketplace Buyer Dashboard ({{ buyer.name }})</h2>
+
+<div class="card mt-4 p-4">
+    <h3>Available Certified Bio-Fertilizers</h3>
+    <div class="marketplace-grid">
+        {% for p in products %}
+        <div class="product-card">
+            <h4>{{ p.product_name }}</h4>
+            <p>{{ p.description }}</p>
+            <p class="price">₹{{ p.price }}</p>
+            <form action="{{ url_for('buyer_checkout', product_id=p.id) }}" method="POST">
+                <div class="form-group">
+                    <input type="number" name="quantity" min="1" max="{{ p.quantity }}" value="1" class="form-control mb-2" required>
+                    <input type="text" name="delivery_address" placeholder="Delivery Address in Dindigul" value="{{ buyer.address }}" class="form-control mb-2" required>
+                    <input type="text" name="buyer_phone" placeholder="Mobile Number" value="{{ buyer.phone }}" class="form-control mb-2" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Confirm Order (COD)</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>My Purchased Orders</h3>
+    <table class="table">
+        <thead>
+            <tr><th>Order ID</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {% for o in orders %}
+            <tr>
+                <td>#{{ o.id }}</td>
+                <td>{{ o.product_name }}</td>
+                <td>{{ o.order_qty }}</td>
+                <td>₹{{ o.total_price }}</td>
+                <td><strong>{{ o.status }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

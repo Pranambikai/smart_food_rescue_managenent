@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Central Administrative Command & Regional Radar</h2>
+<div class="row stats-row">
+    <div class="stat-box"><h3>{{ total_users }}</h3><p>Total Users</p></div>
+    <div class="stat-box"><h3>{{ total_donations }}</h3><p>Total Donations</p></div>
+    <div class="stat-box"><h3>{{ recycled_waste }} Kg</h3><p>Recycled Waste</p></div>
+    <div class="stat-box"><h3>{{ orders_count }}</h3><p>Market Orders</p></div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Dindigul Regional GIS Radar Map</h3>
+    <div id="adminMap" style="height: 400px; border-radius: 8px;"></div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Manage Charitable Trusts (Admin-Only Accounts)</h3>
+    <form action="{{ url_for('admin_add_trust') }}" method="POST" class="mb-4">
+        <div class="grid-2">
+            <input type="text" name="name" class="form-control mb-2" placeholder="Trust Name" required>
+            <input type="email" name="email" class="form-control mb-2" placeholder="Login Email" required>
+            <input type="text" name="phone" class="form-control mb-2" placeholder="Contact Phone" required>
+            <input type="password" name="password" class="form-control mb-2" placeholder="Secure Password" required>
+            <input type="text" name="location" class="form-control mb-2" placeholder="Address Location" required>
+            <input type="number" step="0.1" name="required_kg" class="form-control mb-2" placeholder="Required Quantity (KG)" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-2">Add New Trust Account</button>
+    </form>
+    <table class="table">
+        <thead><tr><th>ID</th><th>Trust Name</th><th>Location</th><th>Required (KG)</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+            {% for t in trusts %}
+            <tr>
+                <td>#{{ t.id }}</td>
+                <td>{{ t.name }}</td>
+                <td>{{ t.location }}</td>
+                <td>{{ t.required_kg }} Kg</td>
+                <td><span class="badge {{ 'badge-success' if t.availability_status == 'Active' else 'badge-danger' }}">{{ t.availability_status }}</span></td>
+                <td>
+                    <form action="{{ url_for('admin_toggle_trust', trust_id=t.id) }}" method="POST">
+                        <button type="submit" class="btn btn-sm {{ 'btn-danger' if t.availability_status == 'Active' else 'btn-success' }}">
+                            {{ 'Deactivate' if t.availability_status == 'Active' else 'Activate' }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Manage Recycling Centres</h3>
+    <form action="{{ url_for('admin_add_recycling') }}" method="POST" class="mb-4">
+        <div class="grid-2">
+            <input type="text" name="center_name" class="form-control mb-2" placeholder="Centre Name" required>
+            <input type="email" name="email" class="form-control mb-2" placeholder="Login Email" required>
+            <input type="text" name="contact_phone" class="form-control mb-2" placeholder="Contact Phone" required>
+            <input type="password" name="password" class="form-control mb-2" placeholder="Secure Password" required>
+            <input type="text" name="location" class="form-control mb-2" placeholder="Address Location" required>
+            <input type="number" step="0.1" name="supported_qty" class="form-control mb-2" placeholder="Supported Capacity (KG)" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-2">Add Recycling Centre</button>
+    </form>
+    <table class="table">
+        <thead><tr><th>ID</th><th>Centre Name</th><th>Location</th><th>Capacity</th><th>Status</th></tr></thead>
+        <tbody>
+            {% for rc in recycling_centers %}
+            <tr>
+                <td>#{{ rc.id }}</td>
+                <td>{{ rc.center_name }}</td>
+                <td>{{ rc.location }}</td>
+                <td>{{ rc.available_capacity }} Kg</td>
+                <td><span class="badge badge-success">{{ rc.availability_status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>All Donations, Matching & Admin-Only Volunteer Assignment</h3>
+    <table class="table">
+        <thead>
+            <tr><th>ID</th><th>Donor</th><th>Food & Qty</th><th>Condition</th><th>Status / Matched Trust</th><th>Assign Volunteer</th></tr>
+        </thead>
+        <tbody>
+            {% for d in donations %}
+            <tr>
+                <td>#{{ d.id }}</td>
+                <td>{{ d.donor_name }}</td>
+                <td>{{ d.food_type }} ({{ d.quantity_kg }} kg)</td>
+                <td>{{ d.food_condition }}</td>
+                <td>{{ d.status }}</td>
+                <td>
+                    {% if d.volunteer_needed == 1 and not d.volunteer_id %}
+                    <form action="{{ url_for('admin_assign_volunteer', donation_id=d.id) }}" method="POST" style="display:inline;">
+                        <select name="volunteer_id" class="form-control-sm" required>
+                            <option value="">Select Volunteer</option>
+                            {% for v in volunteers %}
+                            <option value="{{ v.id }}">{{ v.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+                    </form>
+                    {% elif d.volunteer_id %}
+                    <span class="text-success">Volunteer Assigned</span>
+                    {% else %}
+                    <span class="text-muted">Not Required</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var map = L.map('adminMap').setView([10.3673, 77.9803], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let volMarkers = {};
+    function fetchVolunteers() {
+        fetch('/api/admin/live_volunteer_locations')
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(v => {
+                    if (!v.current_lat || !v.current_lng) return;
+                    let lat = parseFloat(v.current_lat), lng = parseFloat(v.current_lng);
+                    let popup = `<b>Volunteer: ${v.name}</b><br>Status: ${v.task_status || 'Available'}`;
+                    if (volMarkers[v.id]) {
+                        volMarkers[v.id].setLatLng([lat, lng]).setPopupContent(popup);
+                    } else {
+                        volMarkers[v.id] = L.marker([lat, lng]).addTo(map).bindPopup(popup);
+                    }
+                });
+            });
+    }
+    setInterval(fetchVolunteers, 5000);
+    fetchVolunteers();
+});
+</script>
+{% endblock %}

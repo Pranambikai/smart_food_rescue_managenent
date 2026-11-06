@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+    <h2>Welcome, {{ session.get('donor_name') }} (Donor Dashboard)</h2>
+</div>
+<div class="row stats-row">
+    <div class="stat-box"><h3>{{ total_donations }}</h3><p>Total Donations</p></div>
+    <div class="stat-box"><h3>{{ active_donations }}</h3><p>Active Donations</p></div>
+    <div class="stat-box"><h3>{{ completed_donations }}</h3><p>Completed</p></div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Publish Food Batch (Fresh Surplus or Bio-Recycle)</h3>
+    <form action="{{ url_for('donate_food') }}" method="POST">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Food Item Description</label>
+                <input type="text" name="food_type" class="form-control" required placeholder="e.g. Veg Meals, Rice/Sambar">
+            </div>
+            <div class="form-group">
+                <label>Quantity in Kg</label>
+                <input type="number" step="0.1" name="quantity_kg" class="form-control" required placeholder="25.0">
+            </div>
+            <div class="form-group">
+                <label>Food Condition</label>
+                <select name="food_condition" class="form-control">
+                    <option value="Fresh">Fresh Surplus (For Charities)</option>
+                    <option value="Spoiled">Spoiled / Expired (For Bio-Recovery)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Storage Condition</label>
+                <select name="storage_condition" class="form-control">
+                    <option value="Room Temperature">Room Temperature</option>
+                    <option value="Refrigerated">Refrigerated</option>
+                    <option value="Hot-Insulated">Hot-Insulated</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mt-3">
+            <label>Pickup Location Landmark in Dindigul</label>
+            <input type="text" name="location" class="form-control" required placeholder="e.g. Palani Road, Dindigul">
+        </div>
+        <button type="submit" class="btn btn-success mt-3"><i class="fa-solid fa-paper-plane"></i> Post Donation / Rescue Request</button>
+    </form>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>My Active & Past Donations</h3>
+    <table class="table">
+        <thead>
+            <tr><th>ID</th><th>Food Type</th><th>Qty (Kg)</th><th>Condition</th><th>Status</th><th>Matched Trust / Details</th></tr>
+        </thead>
+        <tbody>
+            {% for d in donations %}
+            <tr>
+                <td>#{{ d.id }}</td>
+                <td>{{ d.food_type }}</td>
+                <td>{{ d.quantity_kg }} Kg</td>
+                <td><span class="badge {{ 'badge-success' if d.food_condition == 'Fresh' else 'badge-danger' }}">{{ d.food_condition }}</span></td>
+                <td>{{ d.status }}</td>
+                <td><strong>{{ d.trust_name if d.trust_name else 'Pending Matching / Bio-Plant' }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

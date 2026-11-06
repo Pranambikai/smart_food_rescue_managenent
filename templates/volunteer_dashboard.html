@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Volunteer Command Desk ({{ volunteer.name }})</h2>
+<div class="row stats-row">
+    <div class="stat-box"><h3>{{ assigned_tasks }}</h3><p>Assigned Tasks</p></div>
+    <div class="stat-box"><h3>{{ completed_tasks }}</h3><p>Completed Deliveries</p></div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Live GPS Location Tracker</h3>
+    <button onclick="shareGPS()" class="btn btn-primary"><i class="fa-solid fa-location-crosshairs"></i> Share My Live GPS Location</button>
+    <span id="gps-status" class="ml-3 text-muted">GPS Ready</span>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>My Assigned Rescue Tasks (Admin Dispatched)</h3>
+    <table class="table">
+        <thead>
+            <tr><th>ID</th><th>Donor</th><th>Food & Qty</th><th>Trust Destination</th><th>Status / Action</th></tr>
+        </thead>
+        <tbody>
+            {% for t in tasks %}
+            <tr>
+                <td>#{{ t.id }}</td>
+                <td>{{ t.donor_name }}</td>
+                <td>{{ t.food_type }} ({{ t.quantity_kg }}kg)</td>
+                <td>{{ t.trust_name }} ({{ t.trust_loc }})</td>
+                <td>
+                    {% if t.volunteer_status == 'Assigned' %}
+                    <form action="{{ url_for('volunteer_respond_task', donation_id=t.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" name="action" value="Accept" class="btn btn-success btn-sm">Accept</button>
+                        <button type="submit" name="action" value="Decline" class="btn btn-danger btn-sm">Decline</button>
+                    </form>
+                    {% elif t.volunteer_status == 'Accepted' and 'Delivered' not in t.status %}
+                    <form action="{{ url_for('volunteer_verify_otp', donation_id=t.id) }}" method="POST" style="display:inline;">
+                        <input type="text" name="otp" placeholder="4-digit OTP" required class="form-control-sm" style="width:90px;">
+                        <button type="submit" class="btn btn-primary btn-sm">Verify OTP</button>
+                    </form>
+                    {% else %}
+                    <span class="text-success">{{ t.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function shareGPS() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            fetch('/api/volunteer/update_gps', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({lat: position.coords.latitude, lng: position.coords.longitude})
+            }).then(res => res.json()).then(data => {
+                document.getElementById('gps-status').innerText = "GPS Updated: " + position.coords.latitude.toFixed(4) + ", " + position.coords.longitude.toFixed(4);
+            });
+        });
+    }
+}
+</script>
+{% endblock %}

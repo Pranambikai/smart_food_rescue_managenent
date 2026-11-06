@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Charitable Trust Command Desk ({{ trust.name }})</h2>
+<div class="row stats-row">
+    <div class="stat-box"><h3>{{ available_notifs_count }}</h3><p>New Notifications</p></div>
+    <div class="stat-box"><h3>{{ claimed_count }}</h3><p>Claimed</p></div>
+    <div class="stat-box"><h3>{{ delivered_count }}</h3><p>Delivered</p></div>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Trust Profile & Requirements Setup</h3>
+    <form method="POST">
+        <input type="hidden" name="update_profile" value="1">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Required Daily Quantity in Kg</label>
+                <input type="number" step="0.1" name="required_kg" value="{{ trust.required_kg }}" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Accepted Food Categories (Comma separated)</label>
+                <input type="text" name="accepted_categories" value="{{ trust.accepted_categories }}" class="form-control" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Update Requirements</button>
+    </form>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>Eligible Donation Notifications & Haversine Matches</h3>
+    <table class="table">
+        <thead>
+            <tr><th>Donor</th><th>Food Item</th><th>Qty</th><th>Distance</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for n in notifications %}
+            <tr>
+                <td>{{ n.donor_name }}</td>
+                <td>{{ n.food_type }}</td>
+                <td>{{ n.quantity_kg }} Kg</td>
+                <td><strong>{{ n.distance_km }} km</strong></td>
+                <td><span class="badge {{ 'badge-success' if n.response_status == 'Accepted' else ('badge-danger' if n.response_status == 'Rejected' else 'badge-warning') }}">{{ n.response_status }}</span></td>
+                <td>
+                    {% if n.response_status == 'Pending' %}
+                    <form action="{{ url_for('trust_respond_notification', notif_id=n.id) }}" method="POST" style="display:inline;">
+                        <select name="pickup_mode" class="form-control-sm">
+                            <option value="volunteer">Volunteer Delivery</option>
+                            <option value="self">Self Pickup</option>
+                        </select>
+                        <button type="submit" name="action" value="Accept" class="btn btn-success btn-sm">Accept</button>
+                        <button type="submit" name="action" value="Reject" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">Closed / Responded</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card mt-4 p-4">
+    <h3>My Accepted Claims & OTP Handover</h3>
+    <table class="table">
+        <thead>
+            <tr><th>ID</th><th>Food</th><th>Status</th><th>OTP Code</th><th>Verify Handover</th></tr>
+        </thead>
+        <tbody>
+            {% for c in my_claims %}
+            <tr>
+                <td>#{{ c.id }}</td>
+                <td>{{ c.food_type }} ({{ c.quantity_kg }}kg)</td>
+                <td>{{ c.status }}</td>
+                <td><strong>{{ c.delivery_otp }}</strong></td>
+                <td>
+                    {% if 'Delivered' not in c.status %}
+                    <form action="{{ url_for('trust_verify_otp', donation_id=c.id) }}" method="POST" style="display:inline;">
+                        <input type="text" name="otp" placeholder="Enter OTP" required class="form-control-sm" style="width:100px;">
+                        <button type="submit" class="btn btn-primary btn-sm">Verify OTP</button>
+                    </form>
+                    {% else %}
+                    <span class="text-success">Completed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
